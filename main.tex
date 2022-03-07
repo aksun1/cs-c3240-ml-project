@@ -29,13 +29,53 @@
     
 
     \subsection{Data sources}
-    The slipping warning service offers an \href{https://liukastumisvaroitus-api.beze.io/api/v1/warnings/}{API} for historical data analysis. Some 600 warnings have been issued in total  since November 2013.
+    The slipping warning service offers an \href{https://liukastumisvaroitus-api.beze.io/api/v1/warnings/}{API (link)} for historical data analysis. Some 600 warnings have been issued in total since October 2011.
     %The slipping warning can be seen to be given at any point during the day, though most usually in the night hours.
     As the slipping warning service data only consists of a timestamp and the city issued, training the machine learning algorithm to account for the current weather conditions needs more data to work with.
+    Additionally, the slipping warnings are given on city level for Lahti, Oulu, Kuopio, Jyväskylä, Helsinki, and Joensuu.
 
-    Thus, historical weather data from the \href{https://en.ilmatieteenlaitos.fi/download-observations}{Finnish Metheorological Institute}
-    is combined. Although FMI offers hourly historical data, in this project, the plan is to use the daily aggregated weather recordings for simplicity. In total, there are some 3000 daily weather reports since November 2013
-    
-    Combined together, these data sources will be used to train and validate the machine learning algorithm.
-            
+    Thus, historical weather data from the \href{https://en.ilmatieteenlaitos.fi/download-observations}{Finnish Metheorological Institute (link)}
+    is combined. Although FMI offers hourly historical data, in this project, the plan is to use the daily aggregated weather recordings for simplicity.
+    In total, there are some 3800*6=22800 daily weather reports since October 2011. Applied amount will be lower, as we're concentrated on winter time only.
+    The FMI data includes air temperature (min/max/overall), ground temperature, precipitation amount and snow depth, which can be used as features in this project.
+
+    Combined together based on the city and the timestamp, these data sources will be used to train and validate the machine learning algorithm. The labels and features are extracted from the sources and used as explained in the \hyperlink{section.0.1.1}{introduction section}.
+
+    \section{Methods}
+    \subsection{Feature selection}
+    When you think what causes the most dangerous slipping conditions outside, two conditions need to apply:
+    \begin{itemize}
+      \item There need to be ice on the road.
+      \item There need to be water on the road.
+    \end{itemize}
+    These conditions are the result of a weather that's around 0°C in temperature and the environment is snowy or there's waterfall happening.
+    Thus, features selected are \textbf{Air temperature}, \textbf{Precipitation amount} and \textbf{Snow depth}. Empirical feature analysis 
+    and comparison using my ML script and Excel back up these selections. 
+
+    Feature candidates, such as Ground level minimum temperature, was cut off due to lack of data.
+    Minimum and maximum daily temperature were not deemed to provide additional value over the simplicity 
+    of the aggregated daily temperature value.
+
+    \subsection{Model}
+    \subsubsection{Loss function}
+    \subsection{Data set construction}
+    As the amount of slipping warnings is quite low compared to the actual weather observations (600 < 17500), performng a random split once might lead to 
+    very polarised results regarding the contained warnings. Thus, k-fold approach is used to mitigate the random split variations better.
+
+    Training and validation data is splitted with the k-fold approach. K-fold runs the training and validation cycle multiple times for different
+    subsets of the data. Data consists of some 17500 data points, which is splitted in to 5 folds as it is the default in the sklearn utility. 
+    Folding 5 times results in a training set of 14000 data points and a validation set of 3500 data points in each run.
+
+
+    % Temperatures were filtered from outliers -10 or greater than 10.
+
+    \newpage
+
+    \section{Appendices}
+    \begin{itemize}
+      \item Code and resources are available on the github page: \href{}{Link}.
+    \end{itemize}
+
+
+
 \end{document}
