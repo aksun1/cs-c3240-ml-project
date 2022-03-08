@@ -72,6 +72,7 @@ for city in analyzing_cities:
     dates = weather_data['date'].unique() 
     feature_cols = [
         'Air temperature (degC)', 
+        'Maximum temperature (degC)',
         'Snow depth (cm)', 
         'Precipitation amount (mm)'
     ]
@@ -91,12 +92,10 @@ for city in analyzing_cities:
             learn_fe_values.append(feature)
 
         if None not in learn_fe_values:
-            # filter outliers:
-            if -5 < learn_fe_values[1] < 20:
-                label = day_weather["warning_issued"].to_numpy()[0]    # the warning data is the same for the same date regardless of the index here
-                features.append(learn_fe_values)                  # add feature to list "features"
-                labels.append(label)                      # add label to list "labels"
-                m = m+1
+            label = day_weather["warning_issued"].to_numpy()[0]    # the warning data is the same for the same date regardless of the index here
+            features.append(learn_fe_values)                  # add feature to list "features"
+            labels.append(label)                      # add label to list "labels"
+            m = m+1
 
 #pd.concat(frames).to_excel("labeled_data.xlsx")
 
@@ -104,6 +103,7 @@ X = np.array(features).reshape(m,len(features[0]))  # convert a list of len=m to
 y = np.array(labels) # convert a list of len=m to a ndarray 
 
 print(X.shape)
+print(feature_cols)
 
 #scaler = preprocessing.StandardScaler().fit(X)
 #X_scaled = scaler.transform(X)
@@ -111,7 +111,7 @@ print(X.shape)
 # Defining the kfold object we will use for cross validation
 kfold = KFold(shuffle=True, random_state=41) # shuffle the ordered data
 
-classifiers = [LogisticRegression(class_weight="balanced"), KNeighborsClassifier(), DecisionTreeClassifier(class_weight="balanced"), SVC(class_weight="balanced"), MLPClassifier()]
+classifiers = [LogisticRegression(class_weight="balanced"), KNeighborsClassifier(3), DecisionTreeClassifier(class_weight="balanced"), SVC(class_weight="balanced"), MLPClassifier()]
 tr_errors = {cla.__class__.__name__: [] for cla in classifiers}
 val_errors = {cla.__class__.__name__: [] for cla in classifiers}
 
@@ -122,6 +122,7 @@ for j, (train_indices, val_indices) in enumerate(kfold.split(X)):
     # Define the training and validation data using the indices returned by kfold and numpy indexing 
     
     X_train, y_train, X_val, y_val = X[train_indices], y[train_indices], X[val_indices], y[val_indices]
+    #print(len(X_train), len(X_val))
     for classifier in classifiers:
         clf_1 = classifier    # initialise a classifier, use default value for all arguments
 

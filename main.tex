@@ -1,6 +1,9 @@
 \documentclass[12pt, a4paper]{report}
 \usepackage[utf8]{inputenc}
 \usepackage{hyperref} 
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
 \title{Machine Learning Course Project}
 
 \begin{document}
@@ -49,22 +52,36 @@
       \item There need to be water on the road.
     \end{itemize}
     These conditions are the result of a weather that's around 0°C in temperature and the environment is snowy or there's waterfall happening.
-    Thus, features selected are \textbf{Air temperature}, \textbf{Precipitation amount} and \textbf{Snow depth}. Empirical feature analysis 
+    Thus, features selected are \textbf{Air temperature}, \textbf{Maximum temperature}, \textbf{Precipitation amount} and \textbf{Snow depth}. Empirical feature analysis 
     and comparison using my ML script and Excel back up these selections. 
 
     Feature candidates, such as Ground level minimum temperature, was cut off due to lack of data.
-    Minimum and maximum daily temperature were not deemed to provide additional value over the simplicity 
-    of the aggregated daily temperature value.
+    As slipping conditions occur more often when there's snow to be melted away than when ice is forming, maximum temperature can
+    suggest better than minimum temperature. Minimum temperature was then left out from the features after analysis.
 
     \subsection{Model}
+    The model selected is the k nearest neighbor algorithm. By \autoref{fig:knnfig}, the algorithm looks at closest k data points
+    to the classification target point and determines the class based on which classes have advantage of prevalence in the area.
+    \begin{figure}
+      \label{fig:knnfig}
+      \caption{Example of a nearest neighbor classification problem. Cite: \cite{knnimage}}
+      \centering
+      \includegraphics[width=0.4\columnwidth]{KnnClassification.svg.png}
+    \end{figure}
+
+    As the ML problem is clearly a classification type, I chose a classification method.
+    Analysing different classification models led to chosing this model, as the precision was the greatest. 
+    Since there are slim boundaries in the weather metrics when issuing a slipping warning or not, the nearest neighbor
+    algorithm can identify even the smallest variations and hopefully lead to good results.
+
     \subsubsection{Loss function}
     \subsection{Data set construction}
-    As the amount of slipping warnings is quite low compared to the actual weather observations (600 < 17500), performng a random split once might lead to 
+    As the amount of slipping warnings is quite low compared to the actual weather observations (600 < 23000), performng a random split once might lead to 
     very polarised results regarding the contained warnings. Thus, k-fold approach is used to mitigate the random split variations better.
 
     Training and validation data is splitted with the k-fold approach. K-fold runs the training and validation cycle multiple times for different
-    subsets of the data. Data consists of some 17500 data points, which is splitted in to 5 folds as it is the default in the sklearn utility. 
-    Folding 5 times results in a training set of 14000 data points and a validation set of 3500 data points in each run.
+    subsets of the data. Data consists of some 23000 data points, which is splitted in to 5 folds as it is the default in the sklearn utility. 
+    Folding 5 times results in a training set of 18000 data points and a validation set of 5000 data points in each run.
 
 
     % Temperatures were filtered from outliers -10 or greater than 10.
@@ -76,6 +93,13 @@
       \item Code and resources are available on the github page: \href{}{Link}.
     \end{itemize}
 
+    \newpage
+
+    \begin{thebibliography}{9}
+      \bibitem{knnimage}
+      Antti Ajanki AnAj, CC BY-SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>, via Wikimedia Commons
+      
+    \end{thebibliography}
 
 
 \end{document}
