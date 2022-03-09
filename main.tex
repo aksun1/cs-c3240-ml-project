@@ -3,7 +3,6 @@
 \usepackage{hyperref} 
 \usepackage{graphicx}
 \graphicspath{ {./images/} }
-
 \title{Machine Learning Course Project}
 
 \begin{document}
@@ -12,7 +11,7 @@
     \section{Problem formulation}
     \subsection{Application of ML Problem}
     The current winter has shown that slippery weather might come as a surprise.
-    However, when slippery conditions are expected during the day, a service called \href{https://liukastumisvaroitus.fi/en/}{Liukastumisvaroitus} (Slipping warning) sends subscribers a text-message.
+    However, when slippery conditions are expected during the day, a service called \href{https://liukastumisvaroitus.fi/en/}{Liukastumisvaroitus (link)} (Slipping warning) sends subscribers a text-message.
 
     According to the website, the slippery condition is identified by humans.
     Though one could think that these dangerous weather conditions can be predicted without 
@@ -22,7 +21,7 @@
 
     The data point is going to be a daily observation of weather data, with the additional
     slippery warning parameter. In other words, a single data point represents the weather conditions of a day. Data includes all data points (daily observations) from around 
-    November 2013, as the earliest records of slipping warnings are from then.
+    October 2011, as the earliest records of slipping warnings are from then.
 
     Concluding the parameters, 
     \begin{itemize}
@@ -30,21 +29,23 @@
       \item The label of the application is going to be whether the \textit{slippery warning} would be raised, with values 0/1.
     \end{itemize}
     
+    \section{Methods}
 
     \subsection{Data sources}
-    The slipping warning service offers an \href{https://liukastumisvaroitus-api.beze.io/api/v1/warnings/}{API (link)} for historical data analysis. Some 600 warnings have been issued in total since October 2011.
+    The slipping warning service offers an API \cite{warnsource} for historical data analysis. Some 600 warnings have been issued in total since October 2011.
     %The slipping warning can be seen to be given at any point during the day, though most usually in the night hours.
-    As the slipping warning service data only consists of a timestamp and the city issued, training the machine learning algorithm to account for the current weather conditions needs more data to work with.
     Additionally, the slipping warnings are given on city level for Lahti, Oulu, Kuopio, Jyväskylä, Helsinki, and Joensuu.
+    As the slipping warning service data only consists of a timestamp and the city issued, training the machine learning algorithm to account for the current weather conditions needs more data to work with.
 
-    Thus, historical weather data from the \href{https://en.ilmatieteenlaitos.fi/download-observations}{Finnish Metheorological Institute (link)}
+    Thus, historical weather data from the Finnish Metheorological Institute \cite{fmisource}
     is combined. Although FMI offers hourly historical data, in this project, the plan is to use the daily aggregated weather recordings for simplicity.
-    In total, there are some 3800*6=22800 daily weather reports since October 2011. Applied amount will be lower, as we're concentrated on winter time only.
+    In total, there are some 3800 (days) * 6 (cities) $\approx$ 23000 daily weather reports since October 2011.
     The FMI data includes air temperature (min/max/overall), ground temperature, precipitation amount and snow depth, which can be used as features in this project.
 
-    Combined together based on the city and the timestamp, these data sources will be used to train and validate the machine learning algorithm. The labels and features are extracted from the sources and used as explained in the \hyperlink{section.0.1.1}{introduction section}.
+    Combined together based on the city and the date value, these data sources will be used to train and validate the machine learning algorithm. 
+    The labels and features are extracted from the sources and used as explained in the \hyperlink{section.0.1.1}{introduction section}. 
+    In total we get some 23000 data points for the ML application.
 
-    \section{Methods}
     \subsection{Feature selection}
     When you think what causes the most dangerous slipping conditions outside, two conditions need to apply:
     \begin{itemize}
@@ -63,30 +64,29 @@
     The model selected is the k nearest neighbor algorithm. By \autoref{fig:knnfig}, the algorithm looks at closest k data points
     to the classification target point and determines the class based on which classes have advantage of prevalence in the area.
     \begin{figure}
-      \label{fig:knnfig}
-      \caption{Example of a nearest neighbor classification problem. Cite: \cite{knnimage}}
+      \caption{Example of a nearest neighbor classification problem. Cite: \cite{knnimage}}\label{fig:knnfig}
       \centering
       \includegraphics[width=0.4\columnwidth]{KnnClassification.svg.png}
     \end{figure}
 
     As the ML problem is clearly a classification type, I chose a classification method.
-    Analysing different classification models led to chosing this model, as the precision was the greatest. 
-    Since there are slim boundaries in the weather metrics when issuing a slipping warning or not, the nearest neighbor
+    Analysing different classification models led to chosing this model, as the accuracy was the greatest. 
+    Since there seems to be slim boundaries in the weather metrics when issuing a slipping warning or not, the nearest neighbor
     algorithm can identify even the smallest variations and hopefully lead to good results.
 
     \subsubsection{Loss function}
+    By course material, 0/1 loss is considered the default loss function for especially the k-nearest neighbors classification model. Thus, it is a 
+    good starting point for evaluating the model performance and it is chosed as the loss function in this phase. It gives a 
+    simple enough performance figure, essentially measuring the accuracy of classification (function \textit{accuracy\_score} from sklearn).
     \subsection{Data set construction}
-    As the amount of slipping warnings is quite low compared to the actual weather observations (600 < 23000), performng a random split once might lead to 
+    As the amount of slipping warnings is quite low compared to the actual weather observations (600 $<$ 23000), performng a random split once might lead to 
     very polarised results regarding the contained warnings. Thus, k-fold approach is used to mitigate the random split variations better.
 
     Training and validation data is splitted with the k-fold approach. K-fold runs the training and validation cycle multiple times for different
     subsets of the data. Data consists of some 23000 data points, which is splitted in to 5 folds as it is the default in the sklearn utility. 
     Folding 5 times results in a training set of 18000 data points and a validation set of 5000 data points in each run.
-
-
-    % Temperatures were filtered from outliers -10 or greater than 10.
-
-    \newpage
+    
+    %\newpage
 
     \section{Appendices}
     \begin{itemize}
@@ -96,9 +96,12 @@
     \newpage
 
     \begin{thebibliography}{9}
+      \bibitem{warnsource}
+      Slipping warning service API, \href{https://liukastumisvaroitus-api.beze.io/api/v1/warnings/}{https://liukastumisvaroitus-api.beze.io/api/v1/warnings/}
+      \bibitem{fmisource}
+      Finnish Metheorological Institute, observation history \href{https://en.ilmatieteenlaitos.fi/download-observations}{https://en.ilmatieteenlaitos.fi/download-observations}
       \bibitem{knnimage}
-      Antti Ajanki AnAj, CC BY-SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>, via Wikimedia Commons
-      
+      Antti Ajanki AnAj, CC BY-SA 3.0 \href{http://creativecommons.org/licenses/by-sa/3.0/}{http://creativecommons.org/licenses/by-sa/3.0/}, via Wikimedia Commons (\href{https://commons.wikimedia.org/wiki/File:KnnClassification.svg}{https://commons.wikimedia.org/wiki/File:KnnClassification.svg})
     \end{thebibliography}
 
 
