@@ -1,14 +1,9 @@
-import math
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from scipy import rand
-from sklearn import preprocessing
-from sklearn.feature_selection import RFE
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, confusion_matrix
-from sklearn.model_selection import KFold, train_test_split
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, precision_score
+from sklearn.model_selection import KFold
+from sklearn.neighbors import KNeighborsClassifier 
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier  # evaluation metrics
@@ -57,15 +52,6 @@ for city in analyzing_cities:
 
     weather_data['city'] = city
 
-    #class_count_0, class_count_1 = weather_data['warning_issued'].value_counts()
-
-    # Separate class
-    #class_0 = weather_data[weather_data['warning_issued'] == 0]
-    #class_1 = weather_data[weather_data['warning_issued'] == 1]
-    #class_1_over = class_1.sample(class_count_0, replace=True, random_state=42)
-
-    #weather_data = pd.concat([class_1_over, class_0], axis=0)
-
     frames.append(weather_data)
 
 
@@ -105,13 +91,10 @@ y = np.array(labels) # convert a list of len=m to a ndarray
 print(X.shape)
 print(feature_cols)
 
-#scaler = preprocessing.StandardScaler().fit(X)
-#X_scaled = scaler.transform(X)
-
 # Defining the kfold object we will use for cross validation
 kfold = KFold(shuffle=True, random_state=41) # shuffle the ordered data
 
-classifiers = [LogisticRegression(class_weight="balanced"), KNeighborsClassifier(3), DecisionTreeClassifier(class_weight="balanced"), SVC(class_weight="balanced"), MLPClassifier()]
+classifiers = [LogisticRegression(class_weight="balanced"), KNeighborsClassifier(5), DecisionTreeClassifier(class_weight="balanced"), SVC(class_weight="balanced"), MLPClassifier()]
 tr_errors = {cla.__class__.__name__: [] for cla in classifiers}
 val_errors = {cla.__class__.__name__: [] for cla in classifiers}
 
@@ -128,12 +111,11 @@ for j, (train_indices, val_indices) in enumerate(kfold.split(X)):
 
         clf_1.fit(X_train,y_train)       # fit cfl_1 to data 
         y_pred = clf_1.predict(X_val)   # compute predicted labels for training data
-        accuracy = accuracy_score(y_val, y_pred) # compute accuracy on the training set
-        precision = precision_score(y_val, y_pred, zero_division=0)
+        accuracy = accuracy_score(y_val, y_pred) # compute accuracy on the training set 
+        precision = precision_score(y_val, y_pred, zero_division=0) # TODO: check F1 score performance
 
         tr_errors[classifier.__class__.__name__].append(accuracy) # TODO: change to proper metric
         val_errors[classifier.__class__.__name__].append(precision) # TODO: change to proper metric
-        #print("{}   {}  {}".format(accuracy, precision, classifier.__class__.__name__))
 
 for classifier in tr_errors:
     print("{}   {}  {}".format(np.mean(tr_errors[classifier]), np.mean(val_errors[classifier]), classifier))
