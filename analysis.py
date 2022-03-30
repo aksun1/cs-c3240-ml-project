@@ -5,9 +5,10 @@ Predicting slipping weather conditions.
 """
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import KFold
-from sklearn.neighbors import KNeighborsClassifier 
+from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.model_selection import KFold, train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier 
 
 weather_data_files = {
     "Lahti": "resources/lahti_laune.csv",
@@ -79,43 +80,71 @@ for city in analyzing_cities:
             features.append(learn_fe_values)                  # add feature to list "features"
             labels.append(label)                      # add label to list "labels"
 
-#pd.concat(frames).to_excel("labeled_data.xlsx")
-
 X = np.array(features).reshape(len(features),len(features[0]))  # convert a list of len=m to a ndarray and reshape it to (m,*)
 y = np.array(labels) # convert a list of len=m to a ndarray 
 
 print(X.shape)
 print(feature_cols)
 
+X_model, X_test, y_model, y_test = train_test_split(X, y, test_size=0.1, random_state=41)
+
 # Defining the kfold object we will use for cross validation
 kfold = KFold(shuffle=True, random_state=41) # shuffle the ordered data
 
-# prepare for multiclassifier analysis, but use just one for now.
-classifiers = [KNeighborsClassifier(5)]
-tr_errors = {cla.__class__.__name__: [] for cla in classifiers}
-val_errors = {cla.__class__.__name__: [] for cla in classifiers}
+# study of different ML models:
+#classifiers = [DecisionTreeClassifier(max_depth=n, class_weight="balanced") for n in range(1,33)]
+#classifiers = [KNeighborsClassifier(n_neighbors=n) for n in range(1,33)]
+# final model candidates:
+classifiers = [DecisionTreeClassifier(max_depth=9, class_weight="balanced"), KNeighborsClassifier(n_neighbors=5)]
+
+tr_accuracies = {repr(cla): [] for cla in classifiers}
+tr_precisions = {repr(cla): [] for cla in classifiers}
+tr_recalls = {repr(cla): [] for cla in classifiers}
+val_accuracies = {repr(cla): [] for cla in classifiers}
+val_precisions = {repr(cla): [] for cla in classifiers}
+val_recalls = {repr(cla): [] for cla in classifiers}
 
 # We use the kfold object created earlier, to obtain train and validation sets 
 # for k iterations of training and evaluation
-for j, (train_indices, val_indices) in enumerate(kfold.split(X)): 
+for j, (train_indices, val_indices) in enumerate(kfold.split(X_model)): 
 
     # Define the training and validation data using the indices returned by kfold and numpy indexing 
-    
     X_train, y_train, X_val, y_val = X[train_indices], y[train_indices], X[val_indices], y[val_indices]
-    #print(len(X_train), len(X_val))
     for classifier in classifiers:
         clf_1 = classifier    # initialise a classifier, use default value for all arguments
 
         clf_1.fit(X_train,y_train)       # fit cfl_1 to data 
         y_pred_train = clf_1.predict(X_train)   # compute predicted labels for training data
         train_accuracy = accuracy_score(y_train, y_pred_train) # compute accuracy on the training set 
+        train_precision = precision_score(y_train, y_pred_train) 
+        train_recall = recall_score(y_train, y_pred_train) 
         
         y_pred_val = clf_1.predict(X_val)   # compute predicted labels for validation data
         val_accuracy = accuracy_score(y_val, y_pred_val) # compute accuracy on the validation set 
+        val_precision = precision_score(y_val, y_pred_val)
+        val_recall = recall_score(y_val, y_pred_val)
 
-        tr_errors[classifier.__class__.__name__].append(train_accuracy) 
-        val_errors[classifier.__class__.__name__].append(val_accuracy)
+        tr_accuracies[repr(classifier)].append(train_accuracy) 
+        tr_precisions[repr(classifier)].append(train_precision)
+        tr_recalls[repr(classifier)].append(train_recall)
+        val_accuracies[repr(classifier)].append(val_accuracy)
+        val_precisions[repr(classifier)].append(val_precision)
+        val_recalls[repr(classifier)].append(val_recall)
 
-print("Train error, Val error, Classifier:")
-for classifier in tr_errors:
-    print("{}   {}  {}".format(np.mean(tr_errors[classifier]), np.mean(val_errors[classifier]), classifier))
+print("Train accuracy, Train precision, Train recall, Val accuracy, Val precision, Val recall, Classifier:")
+for classifier in tr_accuracies:
+    print("{}, {}, {}, {}, {}, {}, {}".format(
+        np.mean(tr_accuracies[classifier]),
+        np.mean(tr_precisions[classifier]), 
+        np.mean(tr_recalls[classifier]), 
+        np.mean(val_accuracies[classifier]),
+        np.mean(val_precisions[classifier]),
+        np.mean(val_recalls[classifier]),
+        classifier))
+
+# Compute test error for final selected model
+test_classifier = DecisionTreeClassifier(max_depth=9, class_weight="balanced")
+test_classifier.fit(X_model,y_model)
+test_pred = test_classifier.predict(X_test)
+print("Test errors:")
+print(accuracy_score(y_test, test_pred), precision_score(y_test, test_pred), recall_score(y_test, test_pred))
